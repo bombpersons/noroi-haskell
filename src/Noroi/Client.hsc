@@ -67,7 +67,7 @@ instance Storable Event where
         return $ MousePressEvent $ convMouseButton button
       1 -> do
         button <- peekByteOff p 4 :: IO CInt
-        return $ MousePressEvent $ convMouseButton button
+        return $ MouseReleaseEvent $ convMouseButton button
 
       2 -> do
         x <- peekByteOff p 4 :: IO CInt

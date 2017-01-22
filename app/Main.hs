@@ -13,21 +13,36 @@ set_default_font :: Client -> IO ()
 set_default_font client = do
   Noroi.Client.setFont client "/usr/share/noroi_test_server/font.ttf"
 
-print_events :: Client -> IO ()
-print_events client = do
+print_events :: Client -> Bool -> IO ()
+print_events client clicked = do
   event <- Noroi.Client.handleEvent client
+
   case event of
-    Nothing                   -> do
-      print_events client
     Just (Noroi.Client.MouseMoveEvent x y) -> do
-      Noroi.Client.text client x y "o"
-      Noroi.Client.swapBuffers client
-      print_events client
+      if clicked then do
+        Noroi.Client.text client x y "o"
+        Noroi.Client.swapBuffers client
+        print_events client clicked
+      else do
+        print_events client clicked
+    Just (Noroi.Client.MousePressEvent button) -> do
+
+      putStrLn $ show event
+
+      case button of
+        Noroi.Client.MouseButtonLeft -> print_events client True
+        _                            -> print_events client clicked
+    Just (Noroi.Client.MouseReleaseEvent button) -> do
+
+      putStrLn $ show event
+
+      case button of
+        Noroi.Client.MouseButtonLeft -> print_events client False
+        _                            -> print_events client clicked
     Just Noroi.Client.QuitEvent ->
       putStrLn "Quiting"
-    Just _                    -> do
-      putStrLn $ show event
-      print_events client
+    _                   -> do
+      print_events client clicked
 
 main :: IO ()
 main = do
@@ -64,7 +79,7 @@ main = do
   putStrLn "Swapping Buffers"
 
   -- Print events
-  print_events client
+  print_events client False
 
   -- Delete the client.
   Noroi.Client.deleteClient client
